@@ -58,7 +58,7 @@ resource "aws_instance" "franquicia_ec2" {
                   build: .
                   container_name: franquicia_app
                   ports:
-                    - \\"8080:8080\\"
+                    - \"8080:8080\"
                   environment:
                     SPRING_DATASOURCE_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
                     SPRING_DATASOURCE_USERNAME: admin
