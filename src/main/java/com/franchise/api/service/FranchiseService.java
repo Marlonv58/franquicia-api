@@ -1,7 +1,7 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.FranchiseDto;
-import com.franchise.api.dto.MaxStockProductDto;
+import com.franchise.api.dto.franchise.FranchiseDto;
+import com.franchise.api.dto.product.MaxStockProductDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.entities.Product;

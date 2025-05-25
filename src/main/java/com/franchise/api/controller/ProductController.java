@@ -1,10 +1,10 @@
 package com.franchise.api.controller;
 import com.franchise.api.constant.HttpConstant;
-import com.franchise.api.dto.MaxStockProductDto;
-import com.franchise.api.dto.ProductDto;
-import com.franchise.api.dto.ResponseDto;
-import com.franchise.api.dto.StockUpdateDto;
-import com.franchise.api.entities.Product;
+import com.franchise.api.dto.*;
+import com.franchise.api.dto.product.MaxStockProductDto;
+import com.franchise.api.dto.product.ProductDto;
+import com.franchise.api.dto.product.ProductResponseDto;
+import com.franchise.api.dto.product.StockUpdateDto;
 import com.franchise.api.service.FranchiseService;
 import com.franchise.api.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,16 +36,16 @@ public class ProductController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping("/add")
-    public Mono<ResponseEntity<ResponseDto>> addProduct(@RequestBody ProductDto productDto) {
+    public Mono<ResponseEntity<ResponseDto>> addProductToBranch(@RequestBody ProductDto productDto) {
         return Mono.fromCallable(() -> {
-            if (productDto.getBranchId() == null || productDto.getName() == null || productDto.getStock() == null) {
+            if (productDto.getName() == null || productDto.getStock() < 0 || productDto.getBranchId() == null) {
                 return ResponseEntity.badRequest()
-                        .body(new ResponseDto(false, "Faltan datos obligatorios", null));
+                        .body(new ResponseDto(false, "Datos inválidos", null));
             }
 
-            Product product = productService.addProductToBranch(productDto);
+            ProductResponseDto saved = productService.addProductToBranch(productDto);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ResponseDto(true, "Producto agregado exitosamente", product));
+                    .body(new ResponseDto(true, "Producto agregado exitosamente", saved));
         });
     }
 
@@ -56,20 +56,11 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Producto no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PatchMapping("/{productId}/stock")
-    public Mono<ResponseEntity<ResponseDto>> updateStock(
-            @PathVariable Long productId,
-            @RequestBody StockUpdateDto stockDto) {
-
+    @PutMapping("/update-stock")
+    public Mono<ResponseEntity<ResponseDto>> updateStock(@RequestBody StockUpdateDto dto) {
         return Mono.fromCallable(() -> {
-            if (stockDto.getStock() == null || stockDto.getStock() < 0) {
-                return ResponseEntity.badRequest()
-                        .body(new ResponseDto(false, "El valor de stock debe ser válido", null));
-            }
-
-            Product updated = productService.updateStock(productId, stockDto.getStock());
-            return ResponseEntity.ok()
-                    .body(new ResponseDto(true, "Stock actualizado correctamente", updated));
+            productService.updateStock(dto);
+            return ResponseEntity.ok(new ResponseDto(true, "Stock actualizado correctamente", null));
         });
     }
 
@@ -103,7 +94,7 @@ public class ProductController {
     @GetMapping("/{franchiseId}/max-stock-products")
     public Mono<ResponseEntity<ResponseDto>> getMaxStockProducts(@PathVariable Long franchiseId) {
         return Mono.fromCallable(() -> {
-            List<MaxStockProductDto> result = franchiseService.getMaxStockProductsByFranchise(franchiseId);
+            List<MaxStockProductDto> result = productService.getMaxStockProductsByFranchise(franchiseId);
             return ResponseEntity.ok(new ResponseDto(true, "Productos con mayor stock por sucursal", result));
         });
     }

@@ -1,6 +1,8 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.BranchDto;
+import com.franchise.api.dto.branch.BranchDto;
+import com.franchise.api.dto.branch.BranchResponseDto;
+import com.franchise.api.dto.branch.BranchUpdateDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.repositories.BranchRepository;
@@ -17,7 +19,7 @@ public class BranchService {
         this.franchiseRepository = franchiseRepository;
     }
 
-    public Branch addBranch(BranchDto dto) {
+    public BranchResponseDto addBranch(BranchDto dto) {
         Franchise franchise = franchiseRepository.findById(dto.getFranchiseId())
                 .orElseThrow(() -> new RuntimeException("Franquicia no encontrada"));
 
@@ -26,14 +28,26 @@ public class BranchService {
                 .franchise(franchise)
                 .build();
 
-        return branchRepository.save(branch);
+        Branch savedBranch = branchRepository.save(branch);
+
+        return BranchResponseDto.builder()
+                .id(savedBranch.getId())
+                .name(savedBranch.getName())
+                .franchiseId(savedBranch.getFranchise().getId())
+                .build();
     }
 
-    public Branch updateBranchName(Long branchId, String newName) {
-        Branch branch = branchRepository.findById(branchId)
+    public BranchResponseDto updateBranchName(Long id, BranchUpdateDto dto) {
+        Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
 
-        branch.setName(newName);
-        return branchRepository.save(branch);
+        branch.setName(dto.getName());
+        Branch updated = branchRepository.save(branch);
+
+        return BranchResponseDto.builder()
+                .id(updated.getId())
+                .name(updated.getName())
+                .franchiseId(updated.getFranchise().getId())
+                .build();
     }
 }

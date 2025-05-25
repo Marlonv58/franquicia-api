@@ -87,9 +87,9 @@ No es necesario subir el `.jar`, ya que se construye automáticamente desde el c
 
 Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la aplicación localmente sin necesidad de instalar MySQL, usar un IDE o crear la base de datos manualmente.
 
-#️ Requisitos:
+# Requisitos:
 
-- Docker y Docker Compose instalados
+- Docker y Docker Compose instalados.
 
 # Comando:
 
@@ -148,6 +148,39 @@ El entorno de producción se levanta automáticamente en una instancia EC2 en AW
 
 ---
 
-# Última actualización
+# Conclusiones
+- Este proyecto fue desarrollado siguiendo principios de Clean Architecture, promoviendo una estructura clara, desacoplada y preparada para escalar. Además, se aplicaron fundamentos de programación reactiva mediante Spring WebFlux, lo que permite una mayor eficiencia en el manejo de concurrencia.
+# Estructura basada en Clean Architecture
+- Entidades `entities`: Modelan el dominio principal `Franquicia`, `Sucursal`, `Producto`, sin depender de frameworks.
+- DTOs `dto`: Aislados para representar entradas/salidas de la aplicación, protegiendo el core del dominio.
+- Controladores `controller`: Manejan las solicitudes HTTP y responden con DTOs, sin lógica de negocio directa.
+- Servicios `service`: Implementan la lógica del negocio orquestando la persistencia y transformaciones.
+- Repositorios `repository`: Interfaces con JPA para el acceso a datos y persistencia de los mismos, desacoplados de la lógica de aplicación.
 
-2025-05-25
+Esta estructura garantiza bajo acoplamiento, alta cohesión y facilidad para testeo, escalado y mantenimiento.
+
+# Reactividad y elección tecnológica
+- Se eligió Spring WebFlux por su capacidad de manejar múltiples conexiones simultáneas de manera eficiente y de forma no bloqueante `Mono`, `Flux`, ideal para aplicaciones con alta concurrencia y favoreciendo escalabilidad en microservicios.
+- JPA con MySQL fue utilizado por su madurez, rapidez de desarrollo y compatibilidad. Aunque no es reactivo nativo, se estructuró el código para que la transición a un stack completamente no bloqueante sea viable.
+- Los endpoints están diseñados para consumir y retornar `Mono<ResponseEntity<...>>`, permitiendo flujos reactivos desde el inicio.
+
+# Buenas prácticas aplicadas
+- Código limpio y legible: Métodos cortos, nombres expresivos y responsabilidades únicas.
+- Separación clara de responsabilidades por capas.
+- Control de errores centralizado y respuestas uniformes `ResponseDto` y uso de `@ResponseStatus` para manejar errores y devolver códigos HTTP adecuados..
+- Uso de DTOs para evitar exponer entidades directamente.
+- Pruebas unitarias que validan servicios clave `BranchService`, `ProductService`, `FranchiseService`.
+- Variables de entorno y configuración externa para facilitar el cambio de entorno usando `application.yml`.
+- Despliegue automatizado con Docker y Terraform.
+- Uso de `.dockerignore`, `.gitignore` y buenas prácticas de Git para evitar archivos innecesarios en el control de versiones.
+
+# Futuras mejoras
+Para una arquitectura 100% reactiva y alineada con Clean Architecture en producción, se puede considerar:
+- Implementar un cliente reactivo para `MySQL`, `PgSql` (ej. R2DBC) para aprovechar completamente la reactividad o `MongoDB` con `ReactiveMongoRepository`.
+- Separación total del dominio del framework `pure domain entities`.
+
+# Comentarios personales
+- Este proyecto fue una excelente oportunidad para aplicar y profundizar en conceptos de arquitectura limpia, programación reactiva y despliegue automatizado. Incorporé una solución profesional, organizada y alineada con buenas prácticas modernas. Combina simplicidad, escalabilidad y apertura para evolución futura hacia una arquitectura más purista si el negocio lo requiere.
+
+# Contacto
+- [Correo](marlonvallejotst@gmail.com)

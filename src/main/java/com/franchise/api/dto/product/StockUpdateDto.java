@@ -1,4 +1,4 @@
-package com.franchise.api.dto;
+package com.franchise.api.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockUpdateDto {
-    private Integer stock;
+    private Long productId;
+    private Integer newStock;
 }

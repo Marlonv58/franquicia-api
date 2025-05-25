@@ -1,9 +1,10 @@
 package com.franchise.api.controller;
 
 import com.franchise.api.constant.HttpConstant;
-import com.franchise.api.dto.BranchDto;
+import com.franchise.api.dto.branch.BranchDto;
+import com.franchise.api.dto.branch.BranchResponseDto;
+import com.franchise.api.dto.branch.BranchUpdateDto;
 import com.franchise.api.dto.ResponseDto;
-import com.franchise.api.entities.Branch;
 import com.franchise.api.service.BranchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,7 +38,7 @@ public class BranchController {
                         .body(new ResponseDto(false, "Faltan datos requeridos", null));
             }
 
-            Branch created = branchService.addBranch(branchDto);
+            BranchResponseDto created = branchService.addBranch(branchDto);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ResponseDto(true, "Sucursal agregada exitosamente", created));
         });
@@ -48,19 +49,18 @@ public class BranchController {
             @ApiResponse(responseCode = "200", description = "Sucursal actualizada"),
             @ApiResponse(responseCode = "404", description = "Sucursal no encontrada")
     })
-    @PatchMapping("/{branchId}")
-    public Mono<ResponseEntity<ResponseDto>> updateBranchName(
-            @PathVariable Long branchId,
-            @RequestBody BranchDto branchDto) {
-
+    @PatchMapping("/{id}")
+    public Mono<ResponseEntity<ResponseDto>> updateBranch(
+            @PathVariable Long id,
+            @RequestBody BranchUpdateDto dto) {
         return Mono.fromCallable(() -> {
-            if (branchDto.getName() == null || branchDto.getName().isEmpty()) {
+            if (dto.getName() == null || dto.getName().isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(new ResponseDto(false, "Nombre no puede estar vacío", null));
+                        .body(new ResponseDto(false, "El nombre es obligatorio", null));
             }
 
-            Branch updated = branchService.updateBranchName(branchId, branchDto.getName());
-            return ResponseEntity.ok(new ResponseDto(true, "Sucursal actualizada", updated));
+            BranchResponseDto updated = branchService.updateBranchName(id, dto);
+            return ResponseEntity.ok(new ResponseDto(true, "Sucursal actualizada exitosamente", updated));
         });
     }
 }

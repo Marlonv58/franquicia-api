@@ -1,6 +1,6 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.FranchiseDto;
+import com.franchise.api.dto.franchise.FranchiseDto;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.repositories.FranchiseRepository;
 import org.junit.jupiter.api.Test;

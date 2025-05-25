@@ -1,20 +1,17 @@
-package com.franchise.api.dto;
+package com.franchise.api.dto.product;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FranchiseDto {
+public class ProductResponseDto {
     private Long id;
     private String name;
-    private Integer stock;
+    private int stock;
     private Long branchId;
-    private Long productId;
-    private String productName;
-    private String branchName;
 }

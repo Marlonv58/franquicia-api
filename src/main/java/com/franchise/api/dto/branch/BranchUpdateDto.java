@@ -1,4 +1,4 @@
-package com.franchise.api.dto;
+package com.franchise.api.dto.branch;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BranchDto {
-    private Long franchiseId;
+public class BranchUpdateDto {
     private String name;
 }

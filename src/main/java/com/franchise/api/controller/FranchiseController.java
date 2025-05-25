@@ -1,7 +1,7 @@
 package com.franchise.api.controller;
 
 import com.franchise.api.constant.HttpConstant;
-import com.franchise.api.dto.FranchiseDto;
+import com.franchise.api.dto.franchise.FranchiseDto;
 import com.franchise.api.dto.ResponseDto;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.service.FranchiseService;

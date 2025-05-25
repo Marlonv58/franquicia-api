@@ -1,6 +1,8 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.ProductDto;
+import com.franchise.api.dto.product.ProductDto;
+import com.franchise.api.dto.product.ProductResponseDto;
+import com.franchise.api.dto.product.StockUpdateDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Product;
 import com.franchise.api.repositories.BranchRepository;
@@ -51,7 +53,8 @@ public class ProductServiceTest {
         when(productRepository.save(any(Product.class))).thenReturn(updatedProduct);
 
         // Act
-        Product result = productService.updateStock(productId, newStock);
+        StockUpdateDto dto = new StockUpdateDto(productId, newStock);
+        ProductResponseDto result = productService.updateStock(dto);
 
         // Assert
         assertNotNull(result);
@@ -72,7 +75,7 @@ public class ProductServiceTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            productService.updateStock(productId, newStock);
+            productService.updateStock(new StockUpdateDto(productId, newStock));
         });
 
         assertEquals("Producto no encontrado", exception.getMessage());
@@ -101,12 +104,12 @@ public class ProductServiceTest {
         when(branchRepository.findById(branchId)).thenReturn(Optional.of(branch));
         when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
 
-        Product result = productService.addProductToBranch(dto);
+        ProductResponseDto result = productService.addProductToBranch(dto);
 
         assertNotNull(result);
         assertEquals("Producto A", result.getName());
         assertEquals(20, result.getStock());
-        assertEquals(branch, result.getBranch());
+        assertEquals(branch.getId(), result.getBranchId());
 
         verify(branchRepository).findById(branchId);
         verify(productRepository).save(any(Product.class));

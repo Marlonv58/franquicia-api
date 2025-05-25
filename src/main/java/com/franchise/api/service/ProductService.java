@@ -1,13 +1,18 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.ProductDto;
+import com.franchise.api.dto.product.MaxStockProductDto;
+import com.franchise.api.dto.product.ProductDto;
+import com.franchise.api.dto.product.ProductResponseDto;
+import com.franchise.api.dto.product.StockUpdateDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Product;
 import com.franchise.api.repositories.BranchRepository;
 import com.franchise.api.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -19,7 +24,7 @@ public class ProductService {
         this.branchRepository = branchRepository;
     }
 
-    public Product addProductToBranch(ProductDto dto) {
+    public ProductResponseDto addProductToBranch(ProductDto dto) {
         Branch branch = branchRepository.findById(dto.getBranchId())
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
 
@@ -29,15 +34,28 @@ public class ProductService {
                 .branch(branch)
                 .build();
 
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+
+        return ProductResponseDto.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .stock(saved.getStock())
+                .branchId(saved.getBranch().getId())
+                .build();
     }
 
-    public Product updateStock(Long productId, Integer newStock) {
-        Product product = productRepository.findById(productId)
+    public ProductResponseDto updateStock(StockUpdateDto dto) {
+        Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        product.setStock(dto.getNewStock());
+        Product saved = productRepository.save(product);
 
-        product.setStock(newStock);
-        return productRepository.save(product);
+        return ProductResponseDto.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .stock(saved.getStock())
+                .branchId(saved.getBranch().getId())
+                .build();
     }
 
     public boolean deleteProduct(Long productId) {
@@ -49,5 +67,24 @@ public class ProductService {
         } else {
             return false;
         }
+    }
+
+    public List<MaxStockProductDto> getMaxStockProductsByFranchise(Long franchiseId) {
+        List<Branch> branches = branchRepository.findByFranchiseId(franchiseId);
+
+        return branches.stream()
+                .map(branch -> {
+                    Optional<Product> topProduct = productRepository.findTopByBranchIdOrderByStockDesc(branch.getId());
+                    return topProduct.map(product -> new MaxStockProductDto(
+                            product.getId(),
+                            product.getName(),
+                            product.getStock(),
+                            branch.getId(),
+                            branch.getName()
+                    ));
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 }

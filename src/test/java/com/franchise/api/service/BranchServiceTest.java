@@ -1,6 +1,8 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.BranchDto;
+import com.franchise.api.dto.branch.BranchDto;
+import com.franchise.api.dto.branch.BranchResponseDto;
+import com.franchise.api.dto.branch.BranchUpdateDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.repositories.BranchRepository;
@@ -49,12 +51,12 @@ public class BranchServiceTest {
         when(branchRepository.save(any(Branch.class))).thenReturn(savedBranch);
 
         // Act
-        Branch result = branchService.addBranch(dto);
+        BranchResponseDto result = branchService.addBranch(dto);
 
         // Assert
         assertNotNull(result);
         assertEquals("Sucursal 1", result.getName());
-        assertEquals(franchise, result.getFranchise());
+        assertEquals(franchise, "");
 
         verify(franchiseRepository).findById(franchiseId);
         verify(branchRepository).save(any(Branch.class));
@@ -93,7 +95,11 @@ public class BranchServiceTest {
         when(branchRepository.findById(branchId)).thenReturn(Optional.of(existingBranch));
         when(branchRepository.save(any(Branch.class))).thenReturn(updatedBranch);
 
-        Branch result = branchService.updateBranchName(branchId, newName);
+        BranchUpdateDto dto = BranchUpdateDto.builder()
+                .name("Sucursal Modificada")
+                .build();
+        BranchResponseDto result = branchService.updateBranchName(branchId, dto);
+
 
         assertNotNull(result);
         assertEquals(newName, result.getName());
@@ -107,8 +113,12 @@ public class BranchServiceTest {
         Long branchId = 999L;
         when(branchRepository.findById(branchId)).thenReturn(Optional.empty());
 
+        BranchUpdateDto dto = BranchUpdateDto.builder()
+                .name("Nuevo Nombre")
+                .build();
+
         RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            branchService.updateBranchName(branchId, "Nuevo Nombre");
+            branchService.updateBranchName(branchId, dto);
         });
 
         assertEquals("Sucursal no encontrada", ex.getMessage());

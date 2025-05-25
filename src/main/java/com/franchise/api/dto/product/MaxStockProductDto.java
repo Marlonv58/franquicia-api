@@ -1,4 +1,4 @@
-package com.franchise.api.dto;
+package com.franchise.api.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class MaxStockProductDto {
+    private Long productId;
     private String productName;
     private Integer stock;
+    private Long branchId;
     private String branchName;
 }
