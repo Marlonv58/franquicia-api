@@ -4,7 +4,7 @@ provider "aws" {
 
 variable "key_name" {
   description = "Nombre de la clave SSH en AWS EC2"
-  default     = "your-key-name"
+  default     = "franquicia-key"
 }
 
 resource "aws_security_group" "franquicia_sg" {
@@ -48,7 +48,7 @@ resource "aws_instance" "franquicia_ec2" {
               service docker start
               usermod -a -G docker ec2-user
               chkconfig docker on
-              git clone https://github.com/tuusuario/franquicia-api.git
+              git clone https://github.com/Marlonv58/franquicia-api.git
               cd franquicia-api
               docker-compose up -d
               EOF
@@ -56,4 +56,8 @@ resource "aws_instance" "franquicia_ec2" {
   tags = {
     Name = "FranquiciaApp"
   }
+}
+
+output "public_ip" {
+  value = aws_instance.franquicia_ec2.public_ip
 }
