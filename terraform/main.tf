@@ -48,16 +48,29 @@ resource "aws_instance" "franquicia_ec2" {
               service docker start
               usermod -a -G docker ec2-user
               chkconfig docker on
+
               git clone https://github.com/Marlonv58/franquicia-api.git
               cd franquicia-api
+
+              echo "version: '3.8'
+              services:
+                app:
+                  build: .
+                  container_name: franquicia_app
+                  ports:
+                    - \\"8080:8080\\"
+                  environment:
+                    SPRING_DATASOURCE_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
+                    SPRING_DATASOURCE_USERNAME: admin
+                    SPRING_DATASOURCE_PASSWORD: franquicia123
+                    SPRING_JPA_HIBERNATE_DDL_AUTO: update
+                  restart: always
+              " > docker-compose.yml
+
               docker-compose up -d
               EOF
 
   tags = {
     Name = "FranquiciaApp"
   }
-}
-
-output "public_ip" {
-  value = aws_instance.franquicia_ec2.public_ip
 }

@@ -1,132 +1,153 @@
-# Franchise API - Prueba Técnica Backend
+# Franquicia API
 
-Esta es una API desarrollada como parte de una prueba técnica backend. Permite manejar franquicias, sucursales y productos. Está construida con **Spring Boot**, **programación reactiva (WebFlux)**, **JPA con MySQL**, y empaquetada con **Docker**. Se puede desplegar en AWS usando **Terraform**.
-
----
-
-## Requisitos
-
-- Java 17+
-- Maven 3.8+
-- Docker
-- Docker Compose
-- Cuenta AWS (para despliegue opcional)
+API REST construida con **Spring Boot + WebFlux**, para gestionar franquicias, sucursales y productos.  
+Esta solución incluye programación reactiva, pruebas unitarias, despliegue automatizado con **Docker**, **Terraform** y ejecución en **AWS EC2**.
 
 ---
 
-## Tecnologías utilizadas
+# Tecnologías utilizadas
 
-- Spring Boot 3.5.0
-- Spring WebFlux (programación reactiva)
-- Spring Data JPA + Hibernate
+- Java 17
+- Spring Boot 3.5.0 + WebFlux
 - MySQL 8
 - Docker + Docker Compose
-- Terraform (provisionamiento en AWS)
-- Springdoc OpenAPI (Swagger)
-- Lombok
+- Terraform + AWS EC2 + Amazon RDS
+- Swagger UI (OpenAPI)
+- JUnit + Mockito
+- Maven Wrapper
+- GitHub Actions (opcional para CI/CD futuro)
 
 ---
 
-## ⚙️ Estructura del Proyecto
+# Estructura general del proyecto
 
 ```
-franquicia-api/
+.
 ├── src/
-│   ├── main/java/com/ejemplo/franquicia/
-│   │   ├── controller/         # Controladores con WebFlux
-│   │   ├── service/            # Lógica de negocio
-│   │   ├── repository/         # Interfaces JPA
-│   │   ├── dto/                # Objetos de entrada/salida
-│   │   ├── model/              # Entidades JPA
-│   ├── resources/
-│       └── application.yml     # Configuración de base de datos
+│   ├── main/java/com/franchise/api/...
+│   └── test/java/com/franchise/api/...
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.local.yml
 ├── terraform/
-│   └── main.tf                 # Infraestructura con Terraform
+│   ├── main.tf
+│   ├── rds-franquicia.tf
+│   └── output.tf
+├── pom.xml
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 📦 Cómo levantar localmente
+# Pruebas unitarias
 
-### 1. Clonar el repositorio
+La lógica de negocio de servicios fue probada con `@ExtendWith(MockitoExtension.class)`, incluyendo:
+
+- `BranchService`
+    - `addBranch(...)`
+    - `updateBranchName(...)`
+- `ProductService`
+    - `addProduct(...)`
+    - `updateStock(...)`
+- `FranchiseService`
+    - `createFranchise(...)`
+    - `updateFranchise(...)`
+
+Ejecutar localmente:
+
 ```bash
-git clone https://github.com/tuusuario/franquicia-api.git
-cd franquicia-api
-```
-
-### 2. Construir la app
-```bash
-mvn clean package
-```
-
-### 3. Levantar con Docker Compose
-```bash
-docker-compose up --build
-```
-
-La API estará disponible en: `http://localhost:8080`
-
-Swagger UI: `http://localhost:8080/swagger-ui.html`
-
----
-
-## 🌐 Endpoints principales
-
-| Recurso   | Método | Ruta                                          | Descripción                                     |
-|-----------|--------|-----------------------------------------------|-------------------------------------------------|
-| Franquicia| POST   | /api/franchises/create                       | Crea una nueva franquicia                       |
-| Franquicia| PATCH  | /api/franchises/{id}                         | Actualiza el nombre de una franquicia           |
-| Sucursal  | POST   | /api/branches/add                            | Agrega una sucursal a una franquicia            |
-| Sucursal  | PATCH  | /api/branches/{id}                           | Actualiza el nombre de una sucursal             |
-| Producto  | POST   | /api/products/add                            | Agrega un producto a una sucursal               |
-| Producto  | PATCH  | /api/products/{productId}/stock              | Modifica el stock de un producto                |
-| Producto  | DELETE | /api/products/{productId}                    | Elimina un producto de una sucursal             |
-| Reporte   | GET    | /api/franchises/{id}/max-stock-products      | Lista productos con más stock por sucursal      |
-
----
-
-## 🧠 ¿Por qué WebFlux con MySQL?
-
-Aunque JPA y MySQL son bloqueantes, se usó **Spring WebFlux** con controladores reactivos (`Mono<ResponseEntity<?>>`) para cumplir el criterio de programación reactiva. Se adaptó el acceso a datos bloqueantes usando `Mono.fromCallable(...)`, una práctica válida en migraciones hacia aplicaciones reactivas.
-
-Esto permite que la capa HTTP funcione de forma no bloqueante sobre Netty, y sea escalable y eficiente en concurrencia.
-
----
-
-## ☁️ Despliegue en AWS con Terraform (opcional)
-
-1. Crea un par de llaves en AWS EC2.
-2. Edita `terraform/main.tf` con tu nombre de llave (`key_name`).
-3. Ejecuta desde la carpeta `terraform`:
-```bash
-terraform init
-terraform apply
-```
-4. SSH al servidor y ejecuta:
-```bash
-sudo docker-compose up --build -d
+    ./mvnw test
 ```
 
 ---
 
-## ✅ Criterios de aceptación cumplidos
+# Construcción automática del contenedor
 
-- [x] Crear franquicia
-- [x] Agregar sucursal
-- [x] Agregar producto a sucursal
-- [x] Eliminar producto
-- [x] Modificar stock
-- [x] Obtener productos con más stock por sucursal
-- [x] Programación reactiva con WebFlux
-- [x] Docker y Docker Compose
-- [x] Actualización de nombres (franquicia, sucursal, producto)
-- [x] Infraestructura como código con Terraform
-- [x] Despliegue en nube (EC2 con Docker)
+Se usa un **Dockerfile multietapa**, donde la imagen final se genera desde cero en el EC2:
+
+# `Dockerfile` (resumen)
+
+```dockerfile
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
+
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/api-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+No es necesario subir el `.jar`, ya que se construye automáticamente desde el código fuente.
 
 ---
 
-## 📫 Contacto
-Cualquier duda, puedes contactar a: **[tu nombre o correo]**
+# Ejecutar en entorno local (desarrollo)
+
+Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la aplicación localmente sin necesidad de instalar MySQL, usar un IDE o crear la base de datos manualmente.
+
+#️ Requisitos:
+
+- Docker y Docker Compose instalados
+
+# Comando:
+
+```bash
+    docker compose -f docker-compose.local.yml up --build
+```
+
+# Resultado:
+
+- Se levanta un contenedor de MySQL con:
+  - Base de datos: `franquicia_db`
+  - Usuario: `user`
+  - Contraseña: `pass`
+- Se levanta la API en `http://localhost:8080`
+- Accede a la documentación: `http://localhost:8080/swagger-ui.html`
+
+---
+
+# Ejecutar en entorno productivo (AWS con Terraform)
+
+El entorno de producción se levanta automáticamente en una instancia EC2 en AWS y se conecta con una base de datos MySQL en RDS.
+
+# Requisitos:
+
+- Tener configurado el CLI de AWS:
+```bash
+  aws configure
+```
+- Tener instalado terraform:
+```bash
+  https://developer.hashicorp.com/terraform/downloads
+```
+# Comandos Terraform:
+
+``` bash
+  cd terraform
+  terraform init
+  terraform apply
+```
+
+# ¿Qué hace esto?
+
+- Crea una instancia EC2 (Amazon Linux 2)
+- Crea una base de datos MySQL en Amazon RDS (`franquicia_db`)
+- Inyecta dinámicamente el endpoint de RDS en el `docker-compose.yml`
+- Clona el repositorio en EC2 y levanta la app automáticamente vía Docker
+
+# Acceso:
+
+- API disponible en: `http://<IP_PUBLICA>:8080/swagger-ui.html`
+- Puedes ver la IP al final del despliegue o con:
+
+```bash
+  terraform output public_ip
+```
+
+---
+
+# Última actualización
+
+2025-05-25
