@@ -1,5 +1,5 @@
 output "rds_endpoint" {
-  description = "Endpoint de la base de datos RDS"
+  description = "RDS endpoint database"
   value       = aws_db_instance.franquicia_mysql.address
 }
 output "public_ip" {

@@ -3,16 +3,16 @@ provider "aws" {
 }
 
 variable "key_name" {
-  description = "Nombre de la clave SSH en AWS EC2"
+  description = "Name of SSH key in AWS EC2"
   default     = "franquicia-key"
 }
 
 resource "aws_security_group" "franquicia_sg" {
   name        = "franquicia-sg"
-  description = "Permite tráfico HTTP y SSH"
+  description = "Allow HTTP and SSH traffic"
 
   ingress {
-    description = "Permitir acceso HTTP"
+    description = "Allow HTTP acces"
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
@@ -20,7 +20,7 @@ resource "aws_security_group" "franquicia_sg" {
   }
 
   ingress {
-    description = "Permitir SSH"
+    description = Allow SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"

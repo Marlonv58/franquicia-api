@@ -13,7 +13,7 @@ resource "aws_security_group" "franquicia_db_sg" {
   description = "Permite acceso MySQL desde EC2"
 
   ingress {
-    description = "Permitir acceso MySQL desde EC2"
+    description = "allow MySQL access from EC2"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
