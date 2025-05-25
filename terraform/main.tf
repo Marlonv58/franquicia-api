@@ -20,7 +20,7 @@ resource "aws_security_group" "franquicia_sg" {
   }
 
   ingress {
-    description = Allow SSH"
+    description = "Allow SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
