@@ -147,9 +147,22 @@ El entorno de producción se levanta automáticamente en una instancia EC2 en AW
 
 # Requisitos:
 
-- Tener configurado el CLI de AWS:
+- Tener configurado el CLI de AWS con un usuario que pueda craer ec2, security groups vpc, rds y otras cosas, se podria usar un addminAcces para la prueba o despleigue:
 ```bash
   aws configure
+```
+- Este proyecto no requiere que el archivo `.pem` exista localmente para poder desplegar con Terraform.
+- Toda la instalación del backend y configuración de Docker se realiza automáticamente vía user_data (un script que corre dentro de la instancia EC2 al arrancar).
+- En la consola de AWS, ve a EC2 → Key Pairs, y crea un nuevo par de claves llamado:
+```vbnet
+  franquicia-key
+```
+si quieres usar otra Key pars deberas modificar el nombre de main.tf en esta seccion para que coincida y pueda levantar una instancia ec2
+``` hcl
+  variable "key_name" {
+  description = "Name of SSH key in AWS EC2"
+  default     = "franquicia-key" <------- nombre a cambiar
+}
 ```
 - Tener instalado terraform:
 ```bash
