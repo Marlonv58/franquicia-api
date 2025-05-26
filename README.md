@@ -146,8 +146,8 @@ Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la
 El entorno de producción se levanta automáticamente en una instancia EC2 en AWS y se conecta con una base de datos MySQL en RDS.
 
 # Requisitos:
-
-- Tener configurado el CLI de AWS con un usuario que pueda craer ec2, security groups vpc, rds y otras cosas, se podria usar un addminAcces para la prueba o despleigue:
+Usé mi cuenta personal de AWS free para este proyecto
+- Tener configurado el CLI de AWS con un usuario que pueda craer instancias EC2, security groups, VPC y RDS, se podria usar un addminAcces para la prueba o despliegue:
 ```bash
   aws configure
 ```
@@ -157,7 +157,7 @@ El entorno de producción se levanta automáticamente en una instancia EC2 en AW
 ```vbnet
   franquicia-key
 ```
-si quieres usar otra Key pars deberas modificar el nombre de main.tf en esta seccion para que coincida y pueda levantar una instancia ec2
+si quieres usar otra Key pars deberas modificar el nombre de main.tf en esta seccion para que coincida y pueda levantar una instancia EC2:
 ``` hcl
   variable "key_name" {
   description = "Name of SSH key in AWS EC2"
