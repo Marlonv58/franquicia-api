@@ -123,6 +123,7 @@ Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la
 
 # Requisitos:
 
+- Docker engine (docker desktop obligatorio en windows o macOs) no es obligatorio en linux solo si quieres tener facilidades graficas
 - Docker y Docker Compose instalados.
 
 # Comando:
