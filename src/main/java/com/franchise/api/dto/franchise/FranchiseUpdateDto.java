@@ -1,4 +1,4 @@
-package com.franchise.api.dto.branch;
+package com.franchise.api.dto.franchise;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BranchUpdateDto {
-    @NotBlank(message = "El nombre de la sucursal no puede estar vacío")
+public class FranchiseUpdateDto {
+    @NotBlank (message = "El Id de la franquicia es requerido")
+    private Long id;
+    @NotBlank (message = "El nombre de la franquicia no puede estar vacío")
     private String name;
 }

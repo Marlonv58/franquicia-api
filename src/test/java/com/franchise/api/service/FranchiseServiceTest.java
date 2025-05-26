@@ -1,6 +1,7 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.franchise.FranchiseDto;
+import com.franchise.api.dto.franchise.FranchiseCreateDto;
+import com.franchise.api.dto.franchise.FranchiseUpdateDto;
 import com.franchise.api.entities.Franchise;
 import com.franchise.api.repositories.FranchiseRepository;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ public class FranchiseServiceTest {
     @Test
     void createFranchise_shouldReturnCreatedFranchise() {
         // Arrange
-        FranchiseDto dto = FranchiseDto.builder().name("Franquicia Test").build();
+        FranchiseCreateDto dto = FranchiseCreateDto.builder().name("Franquicia Test").build();
         Franchise expected = Franchise.builder().id(1L).name("Franquicia Test").build();
 
         Mockito.when(franchiseRepository.save(Mockito.any(Franchise.class)))

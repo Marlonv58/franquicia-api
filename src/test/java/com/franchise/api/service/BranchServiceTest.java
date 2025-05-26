@@ -56,7 +56,7 @@ public class BranchServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals("Sucursal 1", result.getName());
-        assertEquals(franchise, "");
+        assertEquals(franchise.getId(), result.getFranchiseId());
 
         verify(franchiseRepository).findById(franchiseId);
         verify(branchRepository).save(any(Branch.class));
@@ -82,9 +82,12 @@ public class BranchServiceTest {
         Long branchId = 1L;
         String newName = "Sucursal Modificada";
 
+        Franchise franchise = Franchise.builder().id(1L).name("Franquicia X").build();
+
         Branch existingBranch = Branch.builder()
                 .id(branchId)
                 .name("Sucursal Original")
+                .franchise(franchise)
                 .build();
 
         Branch updatedBranch = Branch.builder()

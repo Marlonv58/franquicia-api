@@ -47,7 +47,7 @@ public class BranchService {
         return BranchResponseDto.builder()
                 .id(updated.getId())
                 .name(updated.getName())
-                .franchiseId(updated.getFranchise().getId())
+                .franchiseId(updated.getFranchise() != null ? updated.getFranchise().getId() : null)
                 .build();
     }
 }

@@ -21,7 +21,6 @@ public class Branch {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private Integer stock;
     @ManyToOne
     @JoinColumn(name = "franchise_id")
     private Franchise franchise;

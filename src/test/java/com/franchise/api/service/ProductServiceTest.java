@@ -2,6 +2,7 @@ package com.franchise.api.service;
 
 import com.franchise.api.dto.product.ProductDto;
 import com.franchise.api.dto.product.ProductResponseDto;
+import com.franchise.api.dto.product.ProductUpdateNameDto;
 import com.franchise.api.dto.product.StockUpdateDto;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Product;
@@ -37,10 +38,13 @@ public class ProductServiceTest {
         Long productId = 1L;
         Integer newStock = 50;
 
+        Branch branch = Branch.builder().id(1L).name("Sucursal X").build();
+
         Product existingProduct = Product.builder()
                 .id(productId)
                 .name("Café")
                 .stock(20)
+                .branch(branch)
                 .build();
 
         Product updatedProduct = Product.builder()
@@ -131,5 +135,39 @@ public class ProductServiceTest {
 
         assertEquals("Sucursal no encontrada", ex.getMessage());
         verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void updateProductName_shouldUpdateCorrectly() {
+        Long productId = 1L;
+        String newName = "Producto Editado";
+
+        Product existingProduct = Product.builder()
+                .id(productId)
+                .name("Producto A")
+                .stock(10)
+                .branch(Branch.builder().id(1L).name("Sucursal 1").build())
+                .build();
+
+        Product savedProduct = Product.builder()
+                .id(productId)
+                .name(newName)
+                .stock(10)
+                .branch(existingProduct.getBranch())
+                .build();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+
+        ProductUpdateNameDto dto = ProductUpdateNameDto.builder()
+                .id(productId)
+                .name(newName)
+                .build();
+
+        ProductResponseDto result = productService.updateProductName(dto);
+
+        assertEquals(newName, result.getName());
+        assertEquals(productId, result.getId());
+        assertEquals(existingProduct.getBranch().getId(), result.getBranchId());
     }
 }

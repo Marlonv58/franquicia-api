@@ -1,9 +1,6 @@
 package com.franchise.api.service;
 
-import com.franchise.api.dto.product.MaxStockProductDto;
-import com.franchise.api.dto.product.ProductDto;
-import com.franchise.api.dto.product.ProductResponseDto;
-import com.franchise.api.dto.product.StockUpdateDto;
+import com.franchise.api.dto.product.*;
 import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Product;
 import com.franchise.api.repositories.BranchRepository;
@@ -54,7 +51,7 @@ public class ProductService {
                 .id(saved.getId())
                 .name(saved.getName())
                 .stock(saved.getStock())
-                .branchId(saved.getBranch().getId())
+                .branchId(saved.getBranch() != null ? saved.getBranch().getId() :  null)
                 .build();
     }
 
@@ -86,5 +83,20 @@ public class ProductService {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
+    }
+
+    public ProductResponseDto updateProductName(ProductUpdateNameDto dto) {
+        Product product = productRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        product.setName(dto.getName());
+        Product saved = productRepository.save(product);
+
+        return ProductResponseDto.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .stock(saved.getStock())
+                .branchId(saved.getBranch() != null ? saved.getBranch().getId() :  null)
+                .build();
     }
 }
