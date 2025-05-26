@@ -49,6 +49,9 @@ resource "aws_instance" "franquicia_ec2" {
               usermod -a -G docker ec2-user
               chkconfig docker on
 
+              curl -L "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+
               git clone https://github.com/Marlonv58/franquicia-api.git
               cd franquicia-api
 

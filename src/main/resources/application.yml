@@ -9,3 +9,11 @@ spring:
     show-sql: true
   main:
     web-application-type: reactive
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
