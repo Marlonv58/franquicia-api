@@ -1,7 +1,7 @@
 # Franquicia API
 
 API REST construida con **Spring Boot + WebFlux**, para gestionar franquicias, sucursales y productos.  
-Esta solución incluye programación reactiva, pruebas unitarias, despliegue automatizado con **Docker**, **Terraform** y ejecución en **AWS EC2**.
+Esta solución incluye programación reactiva, validaciones automáticas, pruebas unitarias, despliegue automatizado con **Docker**, **Terraform** y ejecución en **AWS EC2**.
 
 ---
 
@@ -10,12 +10,12 @@ Esta solución incluye programación reactiva, pruebas unitarias, despliegue aut
 - Java 17
 - Spring Boot 3.5.0 + WebFlux
 - MySQL 8
+- Jakarta validation
 - Docker + Docker Compose
 - Terraform + AWS EC2 + Amazon RDS
-- Swagger UI (OpenAPI)
 - JUnit + Mockito
 - Maven Wrapper
-- GitHub Actions (opcional para CI/CD futuro)
+- Actuator
 
 ---
 
@@ -38,6 +38,40 @@ Esta solución incluye programación reactiva, pruebas unitarias, despliegue aut
 ```
 
 ---
+
+# Docuemntación y pruebas
+Swagger/OpenAPI fue removido por conflictos de compatibilidad entre versiones de springdoc y Spring Boot 3.5.x.
+Para garantizar compatibilidad y estabilidad del despliegue, se optó por deshabilitar Swagger.
+Para probar los endpoints, se recomienda usar herramientas como Postman o Insomnia.
+para verificar si el backend está funcionando, puedes hacer una petición GET a `http://localhost:8080/actuator/health`, que debería devolver un estado `UP`.
+
+# Como probar los endpoints:
+Se incluye una colección de Postman (franquicia-api.postman_collection.json) con todos los endpoints listos para probar:
+- Crear franquicia.
+- Crear sucursal.
+- Crear producto.
+- Actualizar nombre de sucursal.
+- Actualizar nombre de franquicia.
+- Actualizar nombre de producto.
+- Actualizar stock de producto.
+- Consultar producto con mas stock por sucursal.
+- Eliminar producto.
+- Consultar si el backend está funcionando.
+
+# Validaciones
+Se implementaron validaciones automáticas con `@Valid` y `@Validated` en los DTOs, asegurando que los datos de entrada cumplan con las reglas definidas:
+```java
+@NotBlank(message = "El nombre de la franquicia no puede estar vacío")
+private String name;
+```
+# Ejemplo de validación fallida
+``` json
+{
+  "status": false,
+  "detail": "name: El nombre de la franquicia no puede estar vacío",
+  "response": null
+}
+```
 
 # Pruebas unitarias
 
@@ -104,7 +138,6 @@ Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la
   - Usuario: `user`
   - Contraseña: `pass`
 - Se levanta la API en `http://localhost:8080`
-- Accede a la documentación: `http://localhost:8080/swagger-ui.html`
 
 ---
 
@@ -139,11 +172,13 @@ El entorno de producción se levanta automáticamente en una instancia EC2 en AW
 
 # Acceso:
 
-- API disponible en: `http://<IP_PUBLICA>:8080/swagger-ui.html`
-- Puedes ver la IP al final del despliegue o con:
-
-```bash
-  terraform output public_ip
+- utiliza el output de la ip con el endpoint de consultar el estado de la aplicación que pasé en la collection de Postman:
+```
+  http://{{IP}}:8080/actuator/health
+```
+cuando terraform despliegue la aplicación, te mostrará la IP pública de la instancia EC2 que debes poner en la petición.
+```
+public_ip = "ip pública de la instancia EC2"
 ```
 
 ---
