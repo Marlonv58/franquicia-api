@@ -123,6 +123,7 @@ Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la
 
 # Requisitos:
 
+- Docker engine (docker desktop obligatorio en windows o macOs) no es obligatorio en linux solo si quieres tener facilidades graficas
 - Docker y Docker Compose instalados.
 
 # Comando:
@@ -146,10 +147,23 @@ Este proyecto incluye un `docker-compose.local.yml` que permite levantar toda la
 El entorno de producción se levanta automáticamente en una instancia EC2 en AWS y se conecta con una base de datos MySQL en RDS.
 
 # Requisitos:
-
-- Tener configurado el CLI de AWS:
+Usé mi cuenta personal de AWS free para este proyecto
+- Tener configurado el CLI de AWS con un usuario que pueda craer instancias EC2, security groups, VPC y RDS, se podria usar un addminAcces para la prueba o despliegue:
 ```bash
   aws configure
+```
+- Este proyecto no requiere que el archivo `.pem` exista localmente para poder desplegar con Terraform.
+- Toda la instalación del backend y configuración de Docker se realiza automáticamente vía user_data (un script que corre dentro de la instancia EC2 al arrancar).
+- En la consola de AWS, ve a EC2 → Key Pairs, y crea un nuevo par de claves llamado:
+```vbnet
+  franquicia-key
+```
+si quieres usar otra Key pars deberas modificar el nombre de main.tf en esta seccion para que coincida y pueda levantar una instancia EC2:
+``` hcl
+  variable "key_name" {
+  description = "Name of SSH key in AWS EC2"
+  default     = "franquicia-key" <------- nombre a cambiar
+}
 ```
 - Tener instalado terraform:
 ```bash
