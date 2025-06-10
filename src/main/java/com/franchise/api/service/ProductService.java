@@ -6,6 +6,8 @@ import com.franchise.api.entities.Product;
 import com.franchise.api.repositories.BranchRepository;
 import com.franchise.api.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,82 +23,68 @@ public class ProductService {
         this.branchRepository = branchRepository;
     }
 
-    public ProductResponseDto addProductToBranch(ProductDto dto) {
-        Branch branch = branchRepository.findById(dto.getBranchId())
-                .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
-
-        Product product = Product.builder()
-                .name(dto.getName())
-                .stock(dto.getStock())
-                .branch(branch)
-                .build();
-
-        Product saved = productRepository.save(product);
-
-        return ProductResponseDto.builder()
-                .id(saved.getId())
-                .name(saved.getName())
-                .stock(saved.getStock())
-                .branchId(saved.getBranch().getId())
-                .build();
-    }
-
-    public ProductResponseDto updateStock(StockUpdateDto dto) {
-        Product product = productRepository.findById(dto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-        product.setStock(dto.getNewStock());
-        Product saved = productRepository.save(product);
-
-        return ProductResponseDto.builder()
-                .id(saved.getId())
-                .name(saved.getName())
-                .stock(saved.getStock())
-                .branchId(saved.getBranch() != null ? saved.getBranch().getId() :  null)
-                .build();
-    }
-
-    public boolean deleteProduct(Long productId) {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
-
-        if (optionalProduct.isPresent()) {
-            productRepository.deleteById(productId);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public List<MaxStockProductDto> getMaxStockProductsByFranchise(Long franchiseId) {
-        List<Branch> branches = branchRepository.findByFranchiseId(franchiseId);
-
-        return branches.stream()
-                .map(branch -> {
-                    Optional<Product> topProduct = productRepository.findTopByBranchIdOrderByStockDesc(branch.getId());
-                    return topProduct.map(product -> new MaxStockProductDto(
-                            product.getId(),
-                            product.getName(),
-                            product.getStock(),
-                            branch.getId(),
-                            branch.getName()
-                    ));
+    public Mono<ProductResponseDto> addProductToBranch(ProductDto dto) {
+        return branchRepository.findById(dto.getBranchId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Sucursal no encontrada")))
+                .flatMap(branch -> {
+                    Product product = new Product(null, dto.getName(), dto.getStock(), dto.getBranchId());
+                    return productRepository.save(product);
                 })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+                .map(saved -> ProductResponseDto.builder()
+                        .id(saved.getId())
+                        .name(saved.getName())
+                        .stock(saved.getStock())
+                        .branchId(saved.getBranchId())
+                        .build());
     }
 
-    public ProductResponseDto updateProductName(ProductUpdateNameDto dto) {
-        Product product = productRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+    public Mono<ProductResponseDto> updateStock(StockUpdateDto dto) {
+        return productRepository.findById(dto.getProductId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .flatMap(product -> {
+                    product.setStock(dto.getNewStock());
+                    return productRepository.save(product);
+                })
+                .map(saved -> ProductResponseDto.builder()
+                        .id(saved.getId())
+                        .name(saved.getName())
+                        .stock(saved.getStock())
+                        .branchId(saved.getBranchId())
+                        .build());
+    }
 
-        product.setName(dto.getName());
-        Product saved = productRepository.save(product);
+    public Mono<Boolean> deleteProduct(Long productId) {
+        return productRepository.findById(productId)
+                .flatMap(p -> productRepository.deleteById(productId).thenReturn(true))
+                .defaultIfEmpty(false);
+    }
 
-        return ProductResponseDto.builder()
-                .id(saved.getId())
-                .name(saved.getName())
-                .stock(saved.getStock())
-                .branchId(saved.getBranch() != null ? saved.getBranch().getId() :  null)
-                .build();
+    public Flux<MaxStockProductDto> getMaxStockProductsByFranchise(Long franchiseId) {
+        return branchRepository.findByFranchiseId(franchiseId)
+                .flatMap(branch ->
+                        productRepository.findTopByBranchIdOrderByStockDesc(branch.getId())
+                                .map(product -> new MaxStockProductDto(
+                                        product.getId(),
+                                        product.getName(),
+                                        product.getStock(),
+                                        branch.getId(),
+                                        branch.getName()
+                                )))
+                .switchIfEmpty(Flux.empty());
+    }
+
+    public Mono<ProductResponseDto> updateProductName(ProductUpdateNameDto dto) {
+        return productRepository.findById(dto.getId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado")))
+                .flatMap(product -> {
+                    product.setName(dto.getName());
+                    return productRepository.save(product);
+                })
+                .map(saved -> ProductResponseDto.builder()
+                        .id(saved.getId())
+                        .name(saved.getName())
+                        .stock(saved.getStock())
+                        .branchId(saved.getBranchId())
+                        .build());
     }
 }

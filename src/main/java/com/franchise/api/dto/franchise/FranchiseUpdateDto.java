@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class FranchiseUpdateDto {
-    @NotBlank (message = "El Id de la franquicia es requerido")
-    private Long id;
     @NotBlank (message = "El nombre de la franquicia no puede estar vacío")
     private String name;
 }

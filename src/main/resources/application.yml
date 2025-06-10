@@ -1,14 +1,26 @@
 spring:
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:mysql://localhost:3306/franquicia_db}
+    username: ${SPRING_R2DBC_USERNAME:root}
+    password: ${SPRING_R2DBC_PASSWORD:admin}
+  main:
+    web-application-type: reactive
   datasource:
     url: jdbc:mysql://localhost:3306/franquicia_db
     username: root
     password: admin
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  main:
-    web-application-type: reactive
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+schema:
+  validation:
+    jdbc-url: ${SCHEMA_VALIDATION_JDBC_URL:jdbc:mysql://localhost:3306/franquicia_db}
+    username: ${SCHEMA_VALIDATION_USERNAME:root}
+    password: ${SCHEMA_VALIDATION_PASSWORD:admin}
 
 management:
   endpoints:

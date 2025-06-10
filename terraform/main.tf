@@ -63,10 +63,12 @@ resource "aws_instance" "franquicia_ec2" {
                   ports:
                     - \"8080:8080\"
                   environment:
-                    SPRING_DATASOURCE_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
-                    SPRING_DATASOURCE_USERNAME: admin
-                    SPRING_DATASOURCE_PASSWORD: franquicia123
-                    SPRING_JPA_HIBERNATE_DDL_AUTO: update
+                    SPRING_R2DBC_URL: r2dbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
+                    SPRING_R2DBC_USERNAME: admin
+                    SPRING_R2DBC_PASSWORD: franquicia123
+		    SCHEMA_VALIDATION_JDBC_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
+        	    SCHEMA_VALIDATION_USERNAME: admin
+        	    SCHEMA_VALIDATION_PASSWORD: franquicia123
                   restart: always
               " > docker-compose.yml
 

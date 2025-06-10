@@ -8,6 +8,7 @@ import com.franchise.api.entities.Franchise;
 import com.franchise.api.repositories.BranchRepository;
 import com.franchise.api.repositories.FranchiseRepository;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class BranchService {
@@ -19,35 +20,37 @@ public class BranchService {
         this.franchiseRepository = franchiseRepository;
     }
 
-    public BranchResponseDto addBranch(BranchDto dto) {
-        Franchise franchise = franchiseRepository.findById(dto.getFranchiseId())
-                .orElseThrow(() -> new RuntimeException("Franquicia no encontrada"));
+    public Mono<BranchResponseDto> addBranch(BranchDto dto) {
+        return franchiseRepository.findById(dto.getFranchiseId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Franquicia no encontrada")))
+                .flatMap(franchise -> {
+                    Branch branch = Branch.builder()
+                            .name(dto.getName())
+                            .franchiseId(franchise.getId())
+                            .build();
 
-        Branch branch = Branch.builder()
-                .name(dto.getName())
-                .franchise(franchise)
-                .build();
-
-        Branch savedBranch = branchRepository.save(branch);
-
-        return BranchResponseDto.builder()
-                .id(savedBranch.getId())
-                .name(savedBranch.getName())
-                .franchiseId(savedBranch.getFranchise().getId())
-                .build();
+                    return branchRepository.save(branch);
+                })
+                .map(savedBranch -> BranchResponseDto.builder()
+                        .id(savedBranch.getId())
+                        .name(savedBranch.getName())
+                        .franchiseId(savedBranch.getFranchiseId())
+                        .build()
+                );
     }
 
-    public BranchResponseDto updateBranchName(Long id, BranchUpdateDto dto) {
-        Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
-
-        branch.setName(dto.getName());
-        Branch updated = branchRepository.save(branch);
-
-        return BranchResponseDto.builder()
-                .id(updated.getId())
-                .name(updated.getName())
-                .franchiseId(updated.getFranchise() != null ? updated.getFranchise().getId() : null)
-                .build();
+    public Mono<BranchResponseDto> updateBranchName(Long id, BranchUpdateDto dto) {
+        return branchRepository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Sucursal no encontrada")))
+                .flatMap(branch -> {
+                    branch.setName(dto.getName());
+                    return branchRepository.save(branch);
+                })
+                .map(updated -> BranchResponseDto.builder()
+                        .id(updated.getId())
+                        .name(updated.getName())
+                        .franchiseId(updated.getFranchiseId())
+                        .build()
+                );
     }
 }

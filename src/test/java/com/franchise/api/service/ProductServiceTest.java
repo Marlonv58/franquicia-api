@@ -8,11 +8,15 @@ import com.franchise.api.entities.Branch;
 import com.franchise.api.entities.Product;
 import com.franchise.api.repositories.BranchRepository;
 import com.franchise.api.repositories.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Optional;
 
@@ -34,63 +38,57 @@ public class ProductServiceTest {
 
     @Test
     void updateStock_shouldUpdateAndReturnProduct() {
-        // Arrange
         Long productId = 1L;
         Integer newStock = 50;
-
-        Branch branch = Branch.builder().id(1L).name("Sucursal X").build();
 
         Product existingProduct = Product.builder()
                 .id(productId)
                 .name("Café")
                 .stock(20)
-                .branch(branch)
+                .branchId(1L)
                 .build();
 
         Product updatedProduct = Product.builder()
                 .id(productId)
                 .name("Café")
                 .stock(newStock)
+                .branchId(1L)
                 .build();
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
-        when(productRepository.save(any(Product.class))).thenReturn(updatedProduct);
+        when(productRepository.findById(productId)).thenReturn(Mono.just(existingProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(updatedProduct));
 
-        // Act
         StockUpdateDto dto = new StockUpdateDto(productId, newStock);
-        ProductResponseDto result = productService.updateStock(dto);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(newStock, result.getStock());
-        assertEquals("Café", result.getName());
-
-        verify(productRepository).findById(productId);
-        verify(productRepository).save(existingProduct);
+        StepVerifier.create(productService.updateStock(dto))
+                .expectNextMatches(result ->
+                        result.getStock().equals(newStock) &&
+                                result.getName().equals("Café") &&
+                                result.getBranchId().equals(1L))
+                .verifyComplete();
     }
 
     @Test
-    void updateStock_shouldThrowExceptionIfProductNotFound() {
-        // Arrange
+    void updateStock_shouldThrowIfProductNotFound() {
         Long productId = 99L;
         Integer newStock = 100;
 
-        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+        when(productRepository.findById(productId)).thenReturn(Mono.empty());
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            productService.updateStock(new StockUpdateDto(productId, newStock));
-        });
-
-        assertEquals("Producto no encontrado", exception.getMessage());
-        verify(productRepository).findById(productId);
-        verify(productRepository, never()).save(any());
+        StepVerifier.create(productService.updateStock(new StockUpdateDto(productId, newStock)))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
+                        throwable.getMessage().equals("Producto no encontrado"))
+                .verify();
     }
 
     @Test
     void addProductToBranch_shouldAddProductCorrectly() {
         Long branchId = 1L;
-        Branch branch = Branch.builder().id(branchId).name("Sucursal 1").build();
+
+        Branch branch = Branch.builder()
+                .id(branchId)
+                .name("Sucursal 1")
+                .build();
 
         ProductDto dto = ProductDto.builder()
                 .branchId(branchId)
@@ -102,21 +100,19 @@ public class ProductServiceTest {
                 .id(1L)
                 .name("Producto A")
                 .stock(20)
-                .branch(branch)
+                .branchId(branchId)
                 .build();
 
-        when(branchRepository.findById(branchId)).thenReturn(Optional.of(branch));
-        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(branchRepository.findById(branchId)).thenReturn(Mono.just(branch));
+        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(savedProduct));
 
-        ProductResponseDto result = productService.addProductToBranch(dto);
-
-        assertNotNull(result);
-        assertEquals("Producto A", result.getName());
-        assertEquals(20, result.getStock());
-        assertEquals(branch.getId(), result.getBranchId());
-
-        verify(branchRepository).findById(branchId);
-        verify(productRepository).save(any(Product.class));
+        StepVerifier.create(productService.addProductToBranch(dto))
+                .expectNextMatches(result ->
+                        result.getId().equals(1L) &&
+                                result.getName().equals("Producto A") &&
+                                result.getStock().equals(20) &&
+                                result.getBranchId().equals(branchId))
+                .verifyComplete();
     }
 
     @Test
@@ -127,14 +123,12 @@ public class ProductServiceTest {
                 .stock(5)
                 .build();
 
-        when(branchRepository.findById(dto.getBranchId())).thenReturn(Optional.empty());
+        when(branchRepository.findById(dto.getBranchId())).thenReturn(Mono.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            productService.addProductToBranch(dto);
-        });
-
-        assertEquals("Sucursal no encontrada", ex.getMessage());
-        verify(productRepository, never()).save(any());
+        StepVerifier.create(productService.addProductToBranch(dto))
+                .expectErrorMatches(error -> error instanceof RuntimeException &&
+                        error.getMessage().equals("Sucursal no encontrada"))
+                .verify();
     }
 
     @Test
@@ -146,28 +140,29 @@ public class ProductServiceTest {
                 .id(productId)
                 .name("Producto A")
                 .stock(10)
-                .branch(Branch.builder().id(1L).name("Sucursal 1").build())
+                .branchId(1L)
                 .build();
 
-        Product savedProduct = Product.builder()
+        Product updatedProduct = Product.builder()
                 .id(productId)
                 .name(newName)
                 .stock(10)
-                .branch(existingProduct.getBranch())
+                .branchId(1L)
                 .build();
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
-        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(productRepository.findById(productId)).thenReturn(Mono.just(existingProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(updatedProduct));
 
         ProductUpdateNameDto dto = ProductUpdateNameDto.builder()
                 .id(productId)
                 .name(newName)
                 .build();
 
-        ProductResponseDto result = productService.updateProductName(dto);
-
-        assertEquals(newName, result.getName());
-        assertEquals(productId, result.getId());
-        assertEquals(existingProduct.getBranch().getId(), result.getBranchId());
+        StepVerifier.create(productService.updateProductName(dto))
+                .expectNextMatches(result ->
+                        result.getId().equals(productId) &&
+                                result.getName().equals(newName) &&
+                                result.getBranchId().equals(1L))
+                .verifyComplete();
     }
 }

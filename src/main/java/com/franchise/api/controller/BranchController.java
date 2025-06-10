@@ -2,7 +2,6 @@ package com.franchise.api.controller;
 
 import com.franchise.api.constant.HttpConstant;
 import com.franchise.api.dto.branch.BranchDto;
-import com.franchise.api.dto.branch.BranchResponseDto;
 import com.franchise.api.dto.branch.BranchUpdateDto;
 import com.franchise.api.dto.ResponseDto;
 import com.franchise.api.service.BranchService;
@@ -23,20 +22,19 @@ public class BranchController {
 
     @PostMapping("/add")
     public Mono<ResponseEntity<ResponseDto>> addBranch(@Valid @RequestBody BranchDto branchDto) {
-        return Mono.fromCallable(() -> {
-            BranchResponseDto created = branchService.addBranch(branchDto);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ResponseDto(true, "Sucursal agregada exitosamente", created));
-        });
+        return branchService.addBranch(branchDto)
+                .map(created -> ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new ResponseDto(true, "Sucursal agregada exitosamente", created))
+                );
     }
 
     @PatchMapping("/{id}")
     public Mono<ResponseEntity<ResponseDto>> updateBranch(
             @PathVariable Long id,
             @Valid @RequestBody BranchUpdateDto dto) {
-        return Mono.fromCallable(() -> {
-            BranchResponseDto updated = branchService.updateBranchName(id, dto);
-            return ResponseEntity.ok(new ResponseDto(true, "Sucursal actualizada exitosamente", updated));
-        });
+        return branchService.updateBranchName(id, dto)
+                .map(updated -> ResponseEntity.ok(
+                        new ResponseDto(true, "Sucursal actualizada exitosamente", updated))
+                );
     }
 }
