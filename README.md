@@ -8,7 +8,7 @@ Esta solución incluye programación reactiva, validaciones automáticas, prueba
 # Tecnologías utilizadas
 
 - Java 17
-- Spring Boot 3.5.0 + WebFlux
+- Spring Boot 3.2.5 + WebFlux
 - MySQL 8
 - Jakarta validation
 - Docker + Docker Compose
@@ -39,10 +39,12 @@ Esta solución incluye programación reactiva, validaciones automáticas, prueba
 
 ---
 
-# Docuemntación y pruebas
-Swagger/OpenAPI fue removido por conflictos de compatibilidad entre versiones de springdoc y Spring Boot 3.5.x.
-Para garantizar compatibilidad y estabilidad del despliegue, se optó por deshabilitar Swagger.
-Para probar los endpoints, se recomienda usar herramientas como Postman o Insomnia.
+# Documentación y pruebas
+La documentación Swagger/OpenAPI está habilitada usando Springdoc y se expone en:
+  - http://localhost:8080/swagger-ui.html
+  - http://localhost:8080/swagger-ui/index.html
+  - JSON OpenAPI: http://localhost:8080/v3/api-docs
+Para probar los endpoints, también puedes usar la colección de Postman (`franquicia-api.postman_collection.json`) o Insomnia.
 para verificar si el backend está funcionando, puedes hacer una petición GET a `http://localhost:8080/actuator/health`, que debería devolver un estado `UP`.
 
 # Como probar los endpoints:

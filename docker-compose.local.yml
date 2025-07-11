@@ -12,6 +12,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
   app:
@@ -28,8 +33,12 @@ services:
       SCHEMA_VALIDATION_JDBC_URL: jdbc:mysql://db:3306/franquicia_db
       SCHEMA_VALIDATION_USERNAME: root
       SCHEMA_VALIDATION_PASSWORD: admin
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/franquicia_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: admin
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
 
 volumes:
