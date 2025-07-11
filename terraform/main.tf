@@ -55,7 +55,7 @@ resource "aws_instance" "franquicia_ec2" {
               git clone https://github.com/Marlonv58/franquicia-api.git
               cd franquicia-api
 
-              cat <<EOF > docker-compose.yml
+              cat <<'EOC' > docker-compose.yml
               version: '3.8'
               services:
                 app:
@@ -74,15 +74,10 @@ resource "aws_instance" "franquicia_ec2" {
                     SCHEMA_VALIDATION_USERNAME: admin
                     SCHEMA_VALIDATION_PASSWORD: franquicia123
                   restart: always
-              EOF
-
-              until mysqladmin ping -h ${aws_db_instance.franquicia_mysql.address} -u admin -pfranquicia123 --silent; do
-                echo "Waiting for RDS endpoint..."
-                sleep 10
-              done
+              EOC
 
               docker-compose up -d
-              EOF
+EOF
 
   tags = {
     Name = "FranquiciaApp"
