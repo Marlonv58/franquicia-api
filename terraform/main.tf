@@ -76,7 +76,6 @@ resource "aws_instance" "franquicia_ec2" {
                   restart: always
               EOF
 
-              # Wait for RDS endpoint to be available
               until mysqladmin ping -h ${aws_db_instance.franquicia_mysql.address} -u admin -pfranquicia123 --silent; do
                 echo "Waiting for RDS endpoint..."
                 sleep 10
