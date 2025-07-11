@@ -1,5 +1,13 @@
+terraform {
+  backend "s3" {
+    bucket = aws_s3_bucket.artifacts.bucket
+    key    = "terraform/franquicia/terraform.tfstate"
+    region = var.aws_region
+  }
+}
+
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 variable "key_name" {
@@ -35,48 +43,48 @@ resource "aws_security_group" "franquicia_sg" {
   }
 }
 
+resource "aws_iam_role" "ec2_role" {
+  name = "franquicia-ec2-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = { Service = "ec2.amazonaws.com" },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_ecr_readonly" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "franquicia-ec2-profile"
+  role = aws_iam_role.ec2_role.name
+}
+
 resource "aws_instance" "franquicia_ec2" {
-  ami           = "ami-0c02fb55956c7d316" # Amazon Linux 2 (x86_64)
-  instance_type = "t2.micro"
-  key_name      = var.key_name
+  ami                    = "ami-0c02fb55956c7d316" # Amazon Linux 2 (x86_64)
+  instance_type          = "t2.micro"
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.franquicia_sg.id]
+  iam_instance_profile    = aws_iam_instance_profile.ec2_profile.name
 
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
-              yum install docker git mysql -y
+              yum install docker -y
               service docker start
               usermod -a -G docker ec2-user
               chkconfig docker on
 
-              curl -L "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              chmod +x /usr/local/bin/docker-compose
-
-              git clone https://github.com/Marlonv58/franquicia-api.git
-              cd franquicia-api
-
-              cat <<'EOC' > docker-compose.yml
-              version: '3.8'
-              services:
-                app:
-                  build: .
-                  container_name: franquicia_app
-                  ports:
-                    - "8080:8080"
-                  environment:
-                    SPRING_R2DBC_URL: r2dbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
-                    SPRING_R2DBC_USERNAME: admin
-                    SPRING_R2DBC_PASSWORD: franquicia123
-                    SPRING_DATASOURCE_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
-                    SPRING_DATASOURCE_USERNAME: admin
-                    SPRING_DATASOURCE_PASSWORD: franquicia123
-                    SCHEMA_VALIDATION_JDBC_URL: jdbc:mysql://${aws_db_instance.franquicia_mysql.address}:3306/franquicia_db
-                    SCHEMA_VALIDATION_USERNAME: admin
-                    SCHEMA_VALIDATION_PASSWORD: franquicia123
-                  restart: always
-              EOC
-
-              docker-compose up -d
+              # Login to ECR and run container
+              aws ecr get-login-password --region ${var.aws_region} \
+                | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
+              docker pull ${aws_ecr_repository.franquicia.repository_url}:latest
+              docker run -d --name franquicia_app -p 8080:8080 ${aws_ecr_repository.franquicia.repository_url}:latest
 EOF
 
   tags = {
