@@ -1,15 +1,15 @@
 spring:
   r2dbc:
     url: ${SPRING_R2DBC_URL:r2dbc:mysql://localhost:3306/franquicia_db}
-    username: ${SPRING_R2DBC_USERNAME:root}
-    password: ${SPRING_R2DBC_PASSWORD:admin}
+    username: ${SPRING_R2DBC_USERNAME:admin}
+    password: ${SPRING_R2DBC_PASSWORD:franquicia123}
     initialization-mode: never
   main:
     web-application-type: reactive
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/franquicia_db}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:franquicia123}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   sql:
@@ -32,3 +32,4 @@ management:
 logging:
   level:
     org.flywaydb: DEBUG
+    org.springframework.boot.autoconfigure.flyway: DEBUG
