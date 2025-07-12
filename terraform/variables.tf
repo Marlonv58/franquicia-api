@@ -1,9 +1,3 @@
-variable "github_oauth_token" {
-  description = "GitHub OAuth token with repo access"
-  type        = string
-  sensitive   = true
-}
-
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -28,4 +22,11 @@ variable "github_branch" {
   description = "GitHub branch to build"
   type        = string
   default     = "main"
+}
+
+variable "github_oauth_token" {
+  description = "GitHub OAuth token with repo access"
+  type        = string
+  sensitive   = true
+  default     = "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"
 }

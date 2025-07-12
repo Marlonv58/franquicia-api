@@ -1,10 +1,3 @@
-terraform {
-  backend "s3" {
-    bucket = aws_s3_bucket.artifacts.bucket
-    key    = "terraform/franquicia/terraform.tfstate"
-    region = var.aws_region
-  }
-}
 
 provider "aws" {
   region = var.aws_region

@@ -6,6 +6,10 @@ resource "aws_ecr_repository" "franquicia" {
 
 resource "aws_s3_bucket" "artifacts" {
   bucket = "${data.aws_caller_identity.current.account_id}-franquicia-artifacts-${var.aws_region}"
+}
+
+resource "aws_s3_bucket_acl" "artifacts_acl" {
+  bucket = aws_s3_bucket.artifacts.id
   acl    = "private"
 }
 
@@ -43,18 +47,11 @@ resource "aws_codebuild_project" "franquicia" {
     type = "NO_ARTIFACTS"
   }
 
-  environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/standard:5.0"
-    type                        = "LINUX_CONTAINER"
-    privileged_mode             = true
-  }
-
   source {
     type            = "GITHUB"
     location        = "https://github.com/${var.github_owner}/${var.github_repo}.git"
     git_clone_depth = 1
-    build_spec      = <<BUILD_SPEC
+    buildspec       = <<BUILD_SPEC
 version: 0.2
 phases:
   pre_build:
@@ -62,7 +59,7 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.$AWS_REGION.amazonaws.com
       - REPO_URI=${data.aws_caller_identity.current.account_id}.dkr.ecr.$AWS_REGION.amazonaws.com/franquicia
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:-latest}
+      - IMAGE_TAG=$${COMMIT_HASH:-latest}
   build:
     commands:
       - docker build -t $REPO_URI:$IMAGE_TAG .
@@ -74,9 +71,17 @@ phases:
 artifacts:
   files: []
 BUILD_SPEC
-    environment_variables = [
-      { name = "AWS_REGION", value = var.aws_region }
-    ]
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:5.0"
+    type                        = "LINUX_CONTAINER"
+    privileged_mode             = true
+    environment_variable {
+      name  = "AWS_REGION"
+      value = var.aws_region
+    }
   }
 }
 
@@ -126,9 +131,9 @@ resource "aws_codepipeline" "franquicia" {
       version          = "1"
       output_artifacts = ["source_output"]
       configuration = {
-        Owner  = var.github_owner
-        Repo   = var.github_repo
-        Branch = var.github_branch
+        Owner      = var.github_owner
+        Repo       = var.github_repo
+        Branch     = var.github_branch
         OAuthToken = var.github_oauth_token
       }
     }
@@ -141,6 +146,7 @@ resource "aws_codepipeline" "franquicia" {
       category         = "Build"
       owner            = "AWS"
       provider         = "CodeBuild"
+      version          = "1"
       input_artifacts  = ["source_output"]
       output_artifacts = ["build_output"]
       configuration = {
@@ -149,4 +155,3 @@ resource "aws_codepipeline" "franquicia" {
     }
   }
 }
-
